@@ -1,0 +1,3 @@
+[submodule "libs/lib-uppercut-gl"]
+	path = libs/lib-uppercut-gl
+	url = https://bitbucket.org/uppercutvt/lib-uppercut-gl
