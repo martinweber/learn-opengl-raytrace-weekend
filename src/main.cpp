@@ -5,8 +5,10 @@
 #include "StandardOutSink.h"
 #include "RaytraceApp.h"
 
-void initLogging()
+int main(int argc, char** argv)
 {
+	// init Logging
+	//
 	auto logWorker = g3::LogWorker::createLogWorker();
 	const std::string logfilePath = ".";
 
@@ -14,11 +16,7 @@ void initLogging()
 	auto stdOutHandle = logWorker->addSink(std::make_unique<tachyon::StandardOutSink>(), &tachyon::StandardOutSink::ReceiveLogMessage);
 	g3::initializeLogging(logWorker.get());
 	std::future<std::string> logfileName = logHandle->call(&g3::FileSink::fileName);
-}
 
-int main(int argc, char** argv)
-{
-	initLogging();
 
 	LOG(INFO) << "Raytrace-in-a-Weekend Started";
 

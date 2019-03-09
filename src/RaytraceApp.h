@@ -19,7 +19,7 @@ public:
 
 private:
 	void initialize();
-	void drawFrame();
+	void clearFrame();
 	void processInput(GLFWwindow* window);
 
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
