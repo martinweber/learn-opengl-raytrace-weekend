@@ -7,6 +7,9 @@ writeonly uniform image2D destTex;
 
 layout (local_size_x = 16, local_size_y = 16) in;
 
+const int ANTIALIASING_SAMPLES = 8;
+const int MAX_SECONDARY_RAYS = 16;
+
 struct Ray 
 {
 	vec3 origin;
@@ -137,7 +140,6 @@ vec4 color(in Ray ray)
 	if (hasHit)
 	{
 		// secondary ray
-		const int MAX_SECONDARY_RAYS = 16;
 		vec3 rayColor[MAX_SECONDARY_RAYS];
 
 		int ray_count = 0;
@@ -189,11 +191,10 @@ void main()
 	Ray ray;
 	ray.origin = vec3(0.0, 0.0, 0.0);
 
-	const int TOTAL_SAMPLES = 4;
-	for(int s = 0; s < TOTAL_SAMPLES; ++s)
+	for(int s = 0; s < ANTIALIASING_SAMPLES; ++s)
 	{
-		float rx = rand(vec2(float(storePos.x+s), float(storePos.y+s)));
-		float ry = rand(vec2(float(storePos.y+s), float(storePos.x+s)));
+		const float rx = rand(vec2(float(storePos.x+s), float(storePos.y+s)));
+		const float ry = rand(vec2(float(storePos.y+s), float(storePos.x+s)));
 
 		const float u = (float(storePos.x) + rx) / float(renderWidth);
 		const float v = (float(storePos.y) + ry) / float(renderHeight);
@@ -202,5 +203,5 @@ void main()
 		col += color(ray);
 	}
 
-	imageStore(destTex, storePos, col/TOTAL_SAMPLES);
+	imageStore(destTex, storePos, col/ANTIALIASING_SAMPLES);
 }
