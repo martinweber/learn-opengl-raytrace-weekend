@@ -110,21 +110,21 @@ bool world_hit(in Ray ray, in float t_min, in float t_max, out HitRecord hit)
 	return hit_anything;
 }
 
-vec4 normal_color(in vec3 normal)
+vec3 normal_color(in vec3 normal)
 {
-	return vec4(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0, 2.0);
+	return vec3(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0);
 }
 
-vec4 sky_color(in vec3 direction)
+vec3 sky_color(in vec3 direction)
 {
 	const vec3 unit_dir = normalize(direction);
 	const float t = 0.5 * (unit_dir.y + 1.0);
-	return mix(vec4(1.0), vec4(0.3, 0.5, 0.9, 1.0), t); // color blend
+	return mix(vec3(1.0), vec3(0.3, 0.5, 0.9), t); // color blend
 }
 
-vec4 diffuse()
+vec3 diffuse()
 {
-	return vec4( 0.3, 0.3, 0.3, 1.0);
+	return vec3( 0.3, 0.3, 0.3);
 }
 
 vec4 color(in Ray ray)
@@ -133,25 +133,44 @@ vec4 color(in Ray ray)
     const float maxRayLength = 10000.0;
 	HitRecord hit;
 
-	const bool hasHit = world_hit(ray, minRayLength, maxRayLength, hit);
+	bool hasHit = world_hit(ray, minRayLength, maxRayLength, hit);
 	if (hasHit)
 	{
-		//return 0.5 * vec4(hit.normal.x + 1.0, hit.normal.y + 1.0, hit.normal.z + 1.0, 2.0);
 		vec3 target = hit.pos + hit.normal + random_in_unit_sphere(hit.pos);
-		// secondary ray
-		Ray secondaryRay = { hit.pos, target - hit.pos };
 
-		if( world_hit(secondaryRay, minRayLength, maxRayLength, hit) )
+		// secondary ray
+		const int MaxSecondaryRays = 16;
+		vec3 rayColor[MaxSecondaryRays];
+
+		int ray_count = 0;
+		do
 		{
-			return 0.5 * diffuse();
+			Ray secondaryRay = { hit.pos, target - hit.pos };
+
+			hasHit = world_hit(secondaryRay, minRayLength, maxRayLength, hit);
+			if (hasHit)	
+			{
+				rayColor[ray_count] = vec3(0);
+				ray_count++;
+			}
+			else 
+				rayColor[ray_count] = sky_color(secondaryRay.direction).rgb;
+
 		}
-		else
+		while( hasHit && ray_count < MaxSecondaryRays);
+
+		vec3 color = vec3(0);
+		do
 		{
-			return sky_color(secondaryRay.direction);
+			color += 0.5 * rayColor[ray_count];
+			ray_count--;
 		}
+		while(ray_count >= 0);
+
+		return vec4(color, 1.0);
 	}
 
-	return sky_color(ray.direction);
+	return vec4(sky_color(ray.direction), 1.0);
 }
 
 void main()
