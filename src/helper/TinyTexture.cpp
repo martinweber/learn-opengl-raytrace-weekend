@@ -73,16 +73,16 @@ bool TinyTexture::create(const unsigned char* data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, //TODO: currently HARDCODED
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, //TODO: currently HARDCODED
 		m_width, m_height,
 		0, // border
-		GL_RED, //TODO: currently HARDCODED
+		GL_RGB, //TODO: currently HARDCODED
 		GL_FLOAT, //TODO: currently HARDCODED
 		data);
 
 	// Because we're also using this tex as an image (in order to write to it),
 	// we bind it to an image unit as well
-	glBindImageTexture(0, m_textureId, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+	glBindImageTexture(0, m_textureId, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F);
 
 	LOG_IF(WARNING, GlHelper::hasError()) << GlHelper::createMessage("Could not create texture!");
 
