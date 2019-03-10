@@ -26,17 +26,6 @@ struct HitRecord
 	vec3 normal;
 };
 
-//highp float rand(vec2 co)
-//{
-//    highp float a = 12.9898;
-//    highp float b = 78.233;
-//    highp float c = 43758.5453;
-//    highp float dt= dot(co.xy ,vec2(a,b));
-//    highp float sn= mod(dt,3.14);
-//    return fract(sin(sn) * c);
-//}
-//
-
 vec3 point_at_parameter(in Ray ray, in float t)
 {
 	return ray.origin + t * ray.direction;
@@ -96,11 +85,6 @@ void main()
 {
 	ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
 
-//	float localCoef = length(vec2(ivec2(gl_LocalInvocationID.xy)-8)/8.0);
-//	float globalCoef = sin(float(gl_WorkGroupID.x + gl_WorkGroupID.y) * 0.1 + frameTime) * 0.5;
-//	imageStore(destTex, storePos, vec4(1.0 - globalCoef*localCoef, 0.0, 0.0, 0.0));
-//	// imageStore(destTex, storePos, vec4(rand(vec2(globalCoef, localCoef)), 0.0, 0.0, 0.0));
-//
 	const float aspect_ratio = float(renderWidth) / float(renderHeight);
 
 	const vec3 lowerLeft = vec3(-aspect_ratio, -1.0, -1.0);
