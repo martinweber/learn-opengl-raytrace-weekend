@@ -130,21 +130,20 @@ vec3 diffuse()
 vec4 color(in Ray ray)
 {
 	const float minRayLength = 0.001;
-    const float maxRayLength = 10000.0;
+    const float maxRayLength = 100000.0;
 	HitRecord hit;
 
 	bool hasHit = world_hit(ray, minRayLength, maxRayLength, hit);
 	if (hasHit)
 	{
-		vec3 target = hit.pos + hit.normal + random_in_unit_sphere(hit.pos);
-
 		// secondary ray
-		const int MaxSecondaryRays = 16;
-		vec3 rayColor[MaxSecondaryRays];
+		const int MAX_SECONDARY_RAYS = 16;
+		vec3 rayColor[MAX_SECONDARY_RAYS];
 
 		int ray_count = 0;
 		do
 		{
+			vec3 target = hit.pos + hit.normal + random_in_unit_sphere(hit.pos);
 			Ray secondaryRay = { hit.pos, target - hit.pos };
 
 			hasHit = world_hit(secondaryRay, minRayLength, maxRayLength, hit);
@@ -157,12 +156,12 @@ vec4 color(in Ray ray)
 				rayColor[ray_count] = sky_color(secondaryRay.direction).rgb;
 
 		}
-		while( hasHit && ray_count < MaxSecondaryRays);
+		while( hasHit && ray_count < MAX_SECONDARY_RAYS);
 
 		vec3 color = vec3(0);
 		do
 		{
-			color += 0.5 * rayColor[ray_count];
+			color = 0.5 * (color + rayColor[ray_count]);
 			ray_count--;
 		}
 		while(ray_count >= 0);
@@ -175,6 +174,7 @@ vec4 color(in Ray ray)
 
 void main()
 {
+
 	ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
 
 	const float aspect_ratio = float(renderWidth) / float(renderHeight);
@@ -184,11 +184,23 @@ void main()
 	const vec3 vertical = vec3(0.0, aspect_ratio, 0.0);
 	const vec3 origin = vec3(0.0, 0.0, 0.0);
 
-	const float u = float(storePos.x) / float(renderWidth);
-	const float v = float(storePos.y) / float(renderHeight);
+	vec4 col = vec4(0);
 
 	Ray ray;
 	ray.origin = vec3(0.0, 0.0, 0.0);
-	ray.direction = lowerLeft + u*horizontal + v*vertical;
-	imageStore(destTex, storePos, color(ray));
+
+	const int TOTAL_SAMPLES = 4;
+	for(int s = 0; s < TOTAL_SAMPLES; ++s)
+	{
+		float rx = rand(vec2(float(storePos.x+s), float(storePos.y+s)));
+		float ry = rand(vec2(float(storePos.y+s), float(storePos.x+s)));
+
+		const float u = (float(storePos.x) + rx) / float(renderWidth);
+		const float v = (float(storePos.y) + ry) / float(renderHeight);
+
+		ray.direction = lowerLeft + u*horizontal + v*vertical;
+		col += color(ray);
+	}
+
+	imageStore(destTex, storePos, col/TOTAL_SAMPLES);
 }
