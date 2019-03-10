@@ -11,59 +11,6 @@
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
 
-
-const char* display_vert = R"_(
-#version 450
-in vec2 pos;
-out vec2 texCoord;
-
-void main()
-{
-	texCoord = pos * 0.5 + 0.5;
-	gl_Position = vec4(pos.x, pos.y, 0.0, 1.0);
-}
-)_";
-
-const char* display_frag = R"_(
-#version 450
-uniform sampler2D srcTex;
-in vec2 texCoord;
-out vec4 color;
-
-void main()
-{
-	float c = texture(srcTex, texCoord).x;
-	color = vec4(c, 1.0, 1.0, 1.0);
-}
-)_";
-
-const char* compute_src = R"_(
-#version 450
-uniform float roll;
-writeonly uniform image2D destTex;
-layout (local_size_x = 16, local_size_y = 16) in;
-
-highp float rand(vec2 co)
-{
-    highp float a = 12.9898;
-    highp float b = 78.233;
-    highp float c = 43758.5453;
-    highp float dt= dot(co.xy ,vec2(a,b));
-    highp float sn= mod(dt,3.14);
-    return fract(sin(sn) * c);
-}
-
-void main()
-{
-	ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
-	float localCoef = length(vec2(ivec2(gl_LocalInvocationID.xy)-8)/8.0);
-	float globalCoef = sin(float(gl_WorkGroupID.x + gl_WorkGroupID.y) * 0.1 + roll) * 0.5;
-	imageStore(destTex, storePos, vec4(1.0 - globalCoef*localCoef, 0.0, 0.0, 0.0));
-	// imageStore(destTex, storePos, vec4(rand(vec2(globalCoef, localCoef)), 0.0, 0.0, 0.0));
-}
-)_";
-
-
 RaytraceApp::RaytraceApp()
 {
 	initialize();
@@ -85,24 +32,24 @@ int RaytraceApp::run()
 	// Display Shader
 	//
 	TinyShader display("display");
-	display.setVertexSource(display_vert);
-	display.setFragmentSource(display_frag);
+	display.loadSource(GL_VERTEX_SHADER, "shader/display_vs.glsl");
+	display.loadSource(GL_FRAGMENT_SHADER, "shader/display_fs.glsl");
 	display.create();
 
 	display.use();
 	glBindFragDataLocation(display.getProgramId(), 0, "color");
 	display.setUniform("srcTex", GL_TEXTURE0);
-	GlHelper::logError("Display Shader");
+	LOG_IF(WARNING, GlHelper::hasError()) <<  GlHelper::createMessage("Display Shader");
 
 	// Computer Shader
 	//
 	TinyShader compute("compute");
-	compute.setComputeSource(compute_src);
+	compute.loadSource(GL_COMPUTE_SHADER, "shader/compute.glsl");
 	compute.create();
 
 	compute.use();
 	compute.setUniform("destTex", GL_TEXTURE0);
-	GlHelper::logError("Compute Shader");
+	LOG_IF(WARNING, GlHelper::hasError()) << GlHelper::createMessage("Compute Shader");
 
 	// Vertex Array
 	//
@@ -124,7 +71,7 @@ int RaytraceApp::run()
 	glVertexAttribPointer(posPtr, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(posPtr);
 
-	GlHelper::logError("Array Buffer Data");
+	LOG_IF(WARNING, GlHelper::hasError()) << GlHelper::createMessage("Array Buffer Data");
 
 
 	float frame = 0.0f;
@@ -140,7 +87,8 @@ int RaytraceApp::run()
 		compute.use();
 		compute.setUniform("roll", frame);
 		glDispatchCompute(512/16, 512/16, 1);
-		GlHelper::logError();
+
+		LOG_IF(WARNING, GlHelper::hasError()) << GlHelper::createMessage("Inner Loop");
 
 		// draw
 		//

@@ -14,7 +14,7 @@ public:
 	void setComputeSource(const std::string &source);
 
 	void create();
-	void loadSource(GLuint type, std::string filename);
+	void loadSource(GLuint type, const std::string& filename);
 	GLint getUniformLocation(const std::string& name) const;
 	GLint getAttributeLocation(const std::string& name) const;
 

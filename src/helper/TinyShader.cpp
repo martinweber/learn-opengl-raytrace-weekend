@@ -126,7 +126,7 @@ void TinyShader::compile()
 	@param type is the shader type. Valid parameters are: GL_VERTEX_SHADER, GL_FRAGMENT_SHADER
 */
 
-void TinyShader::loadSource(GLuint type, std::string filename)
+void TinyShader::loadSource(GLuint type, const std::string& filename)
 {
 	std::ifstream shaderFile;
 	shaderFile.exceptions(std::ifstream::badbit | std::ifstream::failbit);
@@ -138,9 +138,20 @@ void TinyShader::loadSource(GLuint type, std::string filename)
 		shaderSource << shaderFile.rdbuf();
 		shaderFile.close();
 
-		if (type == GL_VERTEX_SHADER) m_vertexShaderSource = shaderSource.str();
-		else if (type == GL_FRAGMENT_SHADER) m_fragmentShaderSource = shaderSource.str();
-
+		switch(type)
+		{
+		case GL_VERTEX_SHADER: 
+			m_vertexShaderSource = shaderSource.str();
+			break;
+		case GL_FRAGMENT_SHADER:
+			m_fragmentShaderSource = shaderSource.str();
+			break;
+		case GL_COMPUTE_SHADER:
+			m_computeShaderSource = shaderSource.str();
+			break;
+		default:
+			LOG(WARNING) << "Unknown shader type for loaded source!";
+		}
 	}
 	catch (std::ifstream::failure e)
 	{
