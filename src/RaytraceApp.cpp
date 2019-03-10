@@ -11,6 +11,9 @@
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
 
+const int RENDER_WIDTH = 80*16; // 1280
+const int RENDER_HEIGHT = 45*16; // 720
+
 RaytraceApp::RaytraceApp()
 {
 	initialize();
@@ -23,8 +26,8 @@ int RaytraceApp::run()
 
 	image.channels = 3;
 	image.bitDepth = 32;
-	image.width = 512;
-	image.height = 512;
+	image.width = RENDER_WIDTH;
+	image.height = RENDER_HEIGHT;
 
 	tex.create(image);
 	tex.bind();
@@ -49,6 +52,8 @@ int RaytraceApp::run()
 
 	compute.use();
 	compute.setUniform("destTex", GL_TEXTURE0);
+	compute.setUniform("renderWidth", RENDER_WIDTH);
+	compute.setUniform("renderHeight", RENDER_HEIGHT);
 	LOG_IF(WARNING, GlHelper::hasError()) << GlHelper::createMessage("Compute Shader");
 
 	// Vertex Array
@@ -85,8 +90,8 @@ int RaytraceApp::run()
 		// compute
 		//
 		compute.use();
-		compute.setUniform("roll", frame);
-		glDispatchCompute(512/16, 512/16, 1);
+		compute.setUniform("frameTime", frame);
+		glDispatchCompute(RENDER_WIDTH/16, RENDER_HEIGHT/16, 1);
 
 		LOG_IF(WARNING, GlHelper::hasError()) << GlHelper::createMessage("Inner Loop");
 
