@@ -95,6 +95,9 @@ int RaytraceApp::run()
 
 		LOG_IF(WARNING, GlHelper::hasError()) << GlHelper::createMessage("Inner Loop");
 
+		// make sure writing to image has finished before continuing
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
 		// draw
 		//
 		display.use();
