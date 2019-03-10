@@ -13,6 +13,12 @@ struct Ray
 	vec3 direction;
 };
 
+struct Sphere
+{
+	vec3 center;
+	float radius;
+};
+
 //highp float rand(vec2 co)
 //{
 //    highp float a = 12.9898;
@@ -29,12 +35,12 @@ vec3 point_at_parameter(in Ray ray, in float t)
 	return ray.origin + t * ray.direction;
 }
 
-float hit_sphere(in vec3 sphere_center, in float radius, in Ray ray)
+float hit_sphere(in Sphere sphere, in Ray ray)
 {
-	const vec3 oc = ray.origin - sphere_center;
+	const vec3 oc = ray.origin - sphere.center;
 	const float a = dot(ray.direction, ray.direction);
 	const float b = 2.0 * dot(oc, ray.direction);
-	const float c = dot(oc, oc) - radius*radius;
+	const float c = dot(oc, oc) - sphere.radius*sphere.radius;
 	const float discriminant = b*b - 4*a*c;
 	if (discriminant < 0.0)
 		return -1.0;
@@ -44,7 +50,8 @@ float hit_sphere(in vec3 sphere_center, in float radius, in Ray ray)
 
 vec4 color(in Ray ray)
 {
-	float t = hit_sphere(vec3(0.0, 0.0, -1.0), 0.5, ray);
+	Sphere sphere = { vec3(0.0, 0.0, -1.0), 0.5 };
+	float t = hit_sphere(sphere, ray);
 	if (t > 0.0)
 	{
 		vec3 N = normalize(point_at_parameter(ray, t) - vec3(0.0, 0.0, -1.0));
