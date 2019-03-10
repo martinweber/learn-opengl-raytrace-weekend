@@ -70,6 +70,27 @@ bool sphere_hit(in Sphere sphere, in Ray ray, in float t_min, in float t_max, ou
 	return false;
 }
 
+highp float rand(vec2 co)
+{
+    highp float a = 12.9898;
+    highp float b = 78.233;
+    highp float c = 43758.5453;
+    highp float dt= dot(co.xy ,vec2(a,b));
+    highp float sn= mod(dt,3.14);
+    return fract(sin(sn) * c);
+}
+
+vec3 random_in_unit_sphere(in vec3 pos)
+{
+	vec3 p = vec3(0);
+	do
+	{
+		p = 2.0 * vec3(rand(pos.xy + p.xy), rand(pos.yz + p.yz), rand(pos.xz + p.xz)) - vec3(1,1,1);
+	} 
+	while (length(p)*length(p) >= 1.0);
+	return p;
+}
+
 bool world_hit(in Ray ray, in float t_min, in float t_max, out HitRecord hit)
 {
 	HitRecord temp_hit;
@@ -89,21 +110,48 @@ bool world_hit(in Ray ray, in float t_min, in float t_max, out HitRecord hit)
 	return hit_anything;
 }
 
+vec4 normal_color(in vec3 normal)
+{
+	return vec4(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0, 2.0);
+}
+
+vec4 sky_color(in vec3 direction)
+{
+	const vec3 unit_dir = normalize(direction);
+	const float t = 0.5 * (unit_dir.y + 1.0);
+	return mix(vec4(1.0), vec4(0.3, 0.5, 0.9, 1.0), t); // color blend
+}
+
+vec4 diffuse()
+{
+	return vec4( 0.3, 0.3, 0.3, 1.0);
+}
+
 vec4 color(in Ray ray)
 {
-	const float minRayLength = 0.0;
+	const float minRayLength = 0.001;
     const float maxRayLength = 10000.0;
 	HitRecord hit;
 
 	const bool hasHit = world_hit(ray, minRayLength, maxRayLength, hit);
 	if (hasHit)
 	{
-		return 0.5 * vec4(hit.normal.x + 1.0, hit.normal.y + 1.0, hit.normal.z + 1.0, 2.0);
+		//return 0.5 * vec4(hit.normal.x + 1.0, hit.normal.y + 1.0, hit.normal.z + 1.0, 2.0);
+		vec3 target = hit.pos + hit.normal + random_in_unit_sphere(hit.pos);
+		// secondary ray
+		Ray secondaryRay = { hit.pos, target - hit.pos };
+
+		if( world_hit(secondaryRay, minRayLength, maxRayLength, hit) )
+		{
+			return 0.5 * diffuse();
+		}
+		else
+		{
+			return sky_color(secondaryRay.direction);
+		}
 	}
 
-	const vec3 unit_dir = normalize(ray.direction);
-	const float t = 0.5 * (unit_dir.y + 1.0);
-	return mix(vec4(1.0), vec4(0.5, 0.7, 1.0, 1.0), t); // color blend
+	return sky_color(ray.direction);
 }
 
 void main()
