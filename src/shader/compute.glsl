@@ -18,23 +18,34 @@ layout (local_size_x = 16, local_size_y = 16) in;
 //}
 //
 
-bool hit_sphere(in vec3 sphere_center, in float radius, in vec3 ray_origin, in vec3 ray_direction)
+vec3 point_at_parameter(in vec3 center, in vec3 direction, in float t)
+{
+	return center + t * direction;
+}
+
+float hit_sphere(in vec3 sphere_center, in float radius, in vec3 ray_origin, in vec3 ray_direction)
 {
 	const vec3 oc = ray_origin - sphere_center;
 	const float a = dot(ray_direction, ray_direction);
 	const float b = 2.0 * dot(oc, ray_direction);
 	const float c = dot(oc, oc) - radius*radius;
 	const float discriminant = b*b - 4*a*c;
-	return (discriminant > 0.0);
+	if (discriminant < 0.0)
+		return -1.0;
+	else
+		return (-b - sqrt(discriminant)) / (2.0*a);
 }
 
 vec4 dir_to_color(in vec3 ray_origin, in vec3 direction)
 {
-	if (hit_sphere(vec3(0.0, 0.0, -1.0), 0.5, ray_origin, direction))
-		return vec4(1.0, 0.0, 0.0, 1.0);
-
+	float t = hit_sphere(vec3(0.0, 0.0, -1.0), 0.5, ray_origin, direction);
+	if (t > 0.0)
+	{
+		vec3 N = normalize(point_at_parameter(ray_origin, direction, t) - vec3(0.0, 0.0, -1.0));
+		return 0.5 * vec4(N.x + 1.0, N.y +1.0, N.z + 1, 2.0);
+	}
 	const vec3 unit_dir = normalize(direction);
-	const float t = 0.5 * (unit_dir.y + 1.0);
+	t = 0.5 * (unit_dir.y + 1.0);
 	return mix(vec4(1.0), vec4(0.5, 0.7, 1.0, 1.0), t); // color blend
 }
 
