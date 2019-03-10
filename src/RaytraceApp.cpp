@@ -41,7 +41,7 @@ int RaytraceApp::run()
 
 	display.use();
 	glBindFragDataLocation(display.getProgramId(), 0, "color");
-	display.setUniform("srcTex", GL_TEXTURE0);
+	display.setUniform("srcTex", 0); // Slot of Texture Unit
 	LOG_IF(WARNING, GlHelper::hasError()) <<  GlHelper::createMessage("Display Shader");
 
 	// Computer Shader
@@ -51,7 +51,7 @@ int RaytraceApp::run()
 	compute.create();
 
 	compute.use();
-	compute.setUniform("destTex", GL_TEXTURE0);
+	compute.setUniform("destTex", 0); // Slot of Image Unit
 	compute.setUniform("renderWidth", RENDER_WIDTH);
 	compute.setUniform("renderHeight", RENDER_HEIGHT);
 	LOG_IF(WARNING, GlHelper::hasError()) << GlHelper::createMessage("Compute Shader");
