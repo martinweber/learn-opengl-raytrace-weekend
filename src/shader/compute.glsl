@@ -19,6 +19,13 @@ struct Sphere
 	float radius;
 };
 
+struct HitRecord
+{
+	float t;
+	vec3 pos;
+	vec3 normal;
+};
+
 //highp float rand(vec2 co)
 //{
 //    highp float a = 12.9898;
@@ -35,30 +42,53 @@ vec3 point_at_parameter(in Ray ray, in float t)
 	return ray.origin + t * ray.direction;
 }
 
-float hit_sphere(in Sphere sphere, in Ray ray)
+bool hit_sphere(in Sphere sphere, in Ray ray, in float t_min, in float t_max, out HitRecord hit)
 {
 	const vec3 oc = ray.origin - sphere.center;
 	const float a = dot(ray.direction, ray.direction);
-	const float b = 2.0 * dot(oc, ray.direction);
+	const float b = dot(oc, ray.direction);
 	const float c = dot(oc, oc) - sphere.radius*sphere.radius;
-	const float discriminant = b*b - 4*a*c;
-	if (discriminant < 0.0)
-		return -1.0;
-	else
-		return (-b - sqrt(discriminant)) / (2.0*a);
+	
+	const float discriminant = b*b - a*c;
+	if (discriminant > 0.0)
+	{
+		float temp = (-b - sqrt(discriminant)) / a;
+		if (temp < t_max && temp > t_min)
+		{
+			hit.t = temp;
+			hit.pos = point_at_parameter(ray, hit.t);
+			hit.normal = (hit.pos - sphere.center) / sphere.radius;
+			return true;
+		}
+
+		temp = (-b + sqrt(discriminant)) / a;
+		if (temp < t_max && temp > t_min)
+		{
+			hit.t = temp;
+			hit.pos = point_at_parameter(ray, hit.t);
+			hit.normal = (hit.pos - sphere.center) / sphere.radius;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 vec4 color(in Ray ray)
 {
+	const float minRayLength = 0.0;
+    const float maxRayLength = 10000.0;
+	HitRecord hit;
 	Sphere sphere = { vec3(0.0, 0.0, -1.0), 0.5 };
-	float t = hit_sphere(sphere, ray);
-	if (t > 0.0)
+
+	const bool hasHit = hit_sphere(sphere, ray, minRayLength, maxRayLength, hit);
+	if (hasHit)
 	{
-		vec3 N = normalize(point_at_parameter(ray, t) - vec3(0.0, 0.0, -1.0));
-		return 0.5 * vec4(N.x + 1.0, N.y +1.0, N.z + 1.0, 2.0);
+		return 0.5 * vec4(hit.normal.x + 1.0, hit.normal.y + 1.0, hit.normal.z + 1.0, 2.0);
 	}
+
 	const vec3 unit_dir = normalize(ray.direction);
-	t = 0.5 * (unit_dir.y + 1.0);
+	const float t = 0.5 * (unit_dir.y + 1.0);
 	return mix(vec4(1.0), vec4(0.5, 0.7, 1.0, 1.0), t); // color blend
 }
 
