@@ -34,26 +34,34 @@
 # (To distribute this file outside of CMake, substitute the full
 #  License text for the above reference.)
 
+if(TARGET glew)
+    return()
+endif()
+
+if(NOT GLEW_SEARCH_SUFFIXES)
+    set(GLEW_SEARCH_SUFFIXES "glew")
+endif()
+
 include(FindPackageHandleStandardArgs)
 
 find_path(
-    GLEW_INCLUDE_DIR 
-		GL/glew.h 
-    PATHS 
-		${COMMON_SDK_PATHS} 
-    PATH_SUFFIXES 
+    GLEW_INCLUDE_DIR
+        GL/glew.h
+    PATHS
+        "${CMAKE_SOURCE_DIR}/externals/${G3LOG_DIRNAME}"
+        ${COMMON_SDK_PATHS}
+    PATH_SUFFIXES
 		"${GLEW_SEARCH_SUFFIXES}"
-		"${GLEW_SEARCH_SUFFIXES}/include"
+        "${GLEW_SEARCH_SUFFIXES}/include"
+    NO_DEFAULT_PATH
 )
 
 find_library(
-    GLEW_LIBRARY 
-    NAMES 
-        GLEW glew32 glew glew32s 
-    PATHS 
-		${COMMON_SDK_PATHS} 
-    PATH_SUFFIXES 
-        lib64 
+    GLEW_LIBRARY
+    NAMES
+        GLEW glew32 glew glew32s
+    PATH_SUFFIXES
+        lib64
         "${GLEW_SEARCH_SUFFIXES}/lib/RelWithDebInfo"
         "${GLEW_SEARCH_SUFFIXES}/lib/Debug/x64"
         "${GLEW_SEARCH_SUFFIXES}/lib/Release/x64"

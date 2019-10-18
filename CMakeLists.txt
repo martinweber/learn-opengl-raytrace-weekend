@@ -28,17 +28,8 @@ set(COMMON_SDK_PATHS
 )
 
 
-find_path(EXTERNALS_SOURCE
-NAMES
-    "glfw/include/GLFW/glfw3.h"
-    "install-externals.py"
-PATHS
-    ${COMMON_SDK_PATHS}
-)
-
 find_package(G3LOG REQUIRED)
 find_package(GLM REQUIRED)
-set(GLEW_SEARCH_SUFFIXES "glew")
 find_package(GLEW REQUIRED)
 find_package(GLFW REQUIRED)
 
